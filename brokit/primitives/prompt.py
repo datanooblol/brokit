@@ -10,7 +10,54 @@ What should Prompt do:
 """
 
 from dataclasses import dataclass
-from typing import Type, Any
+from typing import Type, Any, Dict, Union
+import base64
+from pathlib import Path
+import httpx
+import mimetypes
+
+class Image:
+    def __init__(self, source: Union[str, bytes, Path]):
+        """
+        Initialize Image from path, URL, or bytes.
+        
+        Args:
+            source: File path, URL (http/https), or raw bytes
+        """
+        self.source = source
+        if isinstance(source, bytes):
+            self._base64 = base64.b64encode(source).decode('utf-8')
+            self._mime_type = "image/jpeg"  # Default
+        elif isinstance(source, (str, Path)):
+            source_str = str(source)
+            if source_str.startswith(('http://', 'https://')):
+                self._base64 = self._from_url(source_str)
+                self._mime_type = "image/jpeg"
+            else:
+                self._base64 = self._from_path(source_str)
+                self._mime_type = mimetypes.guess_type(source_str)[0] or "image/jpeg"
+        else:
+            raise ValueError(f"Unsupported source type: {type(source)}")
+    
+    def _from_path(self, path: str) -> str:
+        """Load image from file path."""
+        with open(path, 'rb') as f:
+            return base64.b64encode(f.read()).decode('utf-8')
+    
+    def _from_url(self, url: str) -> str:
+        """Download image from URL."""
+        response = httpx.get(url)
+        response.raise_for_status()
+        return base64.b64encode(response.content).decode('utf-8')
+    
+    def to_base64(self) -> str:
+        """Get base64 encoded string."""
+        return self._base64
+    
+    def __repr__(self) -> str:
+        """DSPy-style representation."""
+        data_url = f"data:{self._mime_type};base64,<IMAGE_BASE64_ENCODED({len(self._base64)})>"
+        return f"Image(url={data_url})"
 
 @dataclass
 class FieldInfo:
@@ -19,34 +66,6 @@ class FieldInfo:
     type: Type
     is_input: bool
     
-    def to_dict(self):
-        """Serialize to JSON-compatible dict."""
-        return {
-            'name': self.name,
-            'description': self.description,
-            'type': self.type.__name__,  # 'str', 'int', etc.
-            'is_input': self.is_input
-        }
-    
-    @staticmethod
-    def from_dict(data):
-        """Deserialize from dict."""
-        # Map type name back to actual type
-        type_map = {
-            'str': str,
-            'int': int,
-            'float': float,
-            'bool': bool,
-            'list': list,
-            'dict': dict,
-        }
-        return FieldInfo(
-            name=data['name'],
-            description=data['description'],
-            type=type_map.get(data['type'], str),
-            is_input=data['is_input']
-        )
-
 def InputField(description:str = "") -> Any:
     return FieldInfo(name="", description=description, type=str, is_input=True)
 
@@ -54,6 +73,10 @@ def OutputField(description:str = "") -> Any:
     return FieldInfo(name="", description=description, type=str, is_input=False)
 
 class PromptMeta(type):
+    # Add type hints for metaclass attributes
+    _input_fields: Dict[str, FieldInfo]
+    _output_fields: Dict[str, FieldInfo]
+    _instructions: str    
     def __new__(cls, name, bases, namespace):
         # Check if this is from from_dict (already processed)
         if '_input_fields' in namespace and '_output_fields' in namespace and '_instructions' in namespace:
@@ -98,7 +121,11 @@ class PromptMeta(type):
 class Prompt(metaclass=PromptMeta):
     
     """Base class for defining prompts with input and output fields."""
-    
+    # Type hints for class attributes set by metaclass
+    _input_fields: Dict[str, FieldInfo]
+    _output_fields: Dict[str, FieldInfo]
+    _instructions: str     
+
     def __init__(self, **kwargs):
         for name, value in kwargs.items():
             if name in self._input_fields or name in self._output_fields:
@@ -129,24 +156,3 @@ class Prompt(metaclass=PromptMeta):
     def is_complete(self):
         """Check if all outputs are provided."""
         return len(self.outputs) == len(self._output_fields)    
-
-    @classmethod
-    def to_dict(cls):
-        """Export to JSON-serializable dict."""
-        return {
-            'name': cls.__name__,
-            'input_fields': {k: v.to_dict() for k, v in cls._input_fields.items()},
-            'output_fields': {k: v.to_dict() for k, v in cls._output_fields.items()},
-            'instructions': cls._instructions,
-        }
-
-    @classmethod
-    def from_dict(cls, data):
-        """Recreate from dict."""
-        namespace = {
-            '_input_fields': {k: FieldInfo.from_dict(v) for k, v in data['input_fields'].items()},
-            '_output_fields': {k: FieldInfo.from_dict(v) for k, v in data['output_fields'].items()},
-            '_instructions': data['instructions'],
-            '__module__': '__main__',
-        }
-        return PromptMeta(data['name'], (Prompt,), namespace)

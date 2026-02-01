@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List, Dict, Optional, Any
+from typing import List, Dict, Optional, Any, Literal
 from dataclasses import dataclass
 from enum import Enum
 import time
@@ -9,7 +9,20 @@ import hashlib
 
 class ModelType(str, Enum):
     CHAT = "chat"
-    COMPLETION = "completion"
+    # COMPLETION = "completion" # not implement yet
+
+@dataclass
+class Message:
+    role: Literal["system", "user", "assistant"]
+    content: str
+    images: Optional[List[Any]] = None
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dict for serialization."""
+        d: Dict[str, Any] = {"role": self.role, "content": self.content}
+        if self.images:
+            d["images"] = self.images
+        return d
 
 @dataclass
 class Usage:
@@ -24,7 +37,8 @@ class ModelResponse:
     usage:Usage
     response_ms: Optional[float] = None
     cached:bool = False
-    metadata: Optional[Dict[str, Any]] = None
+    metadata:Optional[Dict[str, Any]] = None
+    request:Optional[Dict[str, Any]] = None
     parsed_response: Optional[Dict[str, Any]] = None
 
 class LM(ABC):
@@ -36,33 +50,45 @@ class LM(ABC):
         self.history = []
 
     @abstractmethod    
-    def request(self, prompt:Optional[str]=None, messages:Optional[List[Dict[str, str]]]=None, **kwargs) -> Any:
+    def request(self, prompt:Optional[str]=None, messages:Optional[List[Message]]=None, **kwargs) -> Any:
         raise NotImplementedError
 
     @abstractmethod
     def parse_response(self, original_response:dict) -> ModelResponse:
         raise NotImplementedError
 
-    def _validate_input(self, prompt:Optional[str], messages:Optional[List[Dict[str, str]]]):
+    def _validate_input(self, prompt:Optional[str], messages:Optional[List[Message]]):
         if prompt is None and messages is None:
             raise ValueError("Either prompt or messages must be provided")
         if prompt is not None and messages is not None:
             raise ValueError("Cannot provide both prompt and messages")
 
-    def _cache_key(self, prompt: Optional[str], messages: Optional[List[Dict[str, str]]], kwargs: dict) -> str:
+    def _cache_key(self, prompt: Optional[str], messages: Optional[List[Message]], kwargs: dict) -> str:
         """Generate cache key from request parameters."""
+        # Convert messages to serializable format
+        serializable_messages = None
+        if messages:
+            serializable_messages = [
+                {
+                    "role": msg.role,
+                    "content": msg.content,
+                    "images": msg.images
+                } if isinstance(msg, Message) else msg
+                for msg in messages
+            ]
+        
         cache_data = {
             "model": self.model_name,
             "prompt": prompt,
-            "messages": messages,
+            "messages": serializable_messages,
             **kwargs
         }
         # Convert to JSON string (sorted for consistency)
         json_str = json.dumps(cache_data, sort_keys=True)
         # Hash to fixed-length key
-        return hashlib.sha256(json_str.encode()).hexdigest()
+        return hashlib.sha256(json_str.encode()).hexdigest()    
 
-    def __call__(self, prompt: Optional[str] = None, messages: Optional[List[Dict[str, str]]] = None, **kwargs) -> ModelResponse:
+    def __call__(self, prompt: Optional[str] = None, messages: Optional[List[Message]] = None, **kwargs) -> ModelResponse:
         self._validate_input(prompt, messages)
         key = self._cache_key(prompt, messages, kwargs)
         # Check cache
