@@ -1,5 +1,14 @@
 # Versions
 
+## 0.1.1 - Vision & Imports
+
+**What's new:**
+- **Import style** - Use `import brokit as bk` (DSPy-style imports)
+- **Vision support** - `bk.Image` class for working with vision models
+  - Load from file path, URL, or bytes
+  - Integrated examples in `cookbook/lm/ollama.ipynb` and `cookbook/lm/bedrock.ipynb`
+- **Cookbook** - Added practical notebooks for LM integrations and predictor patterns
+
 ## 0.1.0 - The Foundation Drop
 
 First release, let's go! 🚀

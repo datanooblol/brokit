@@ -3,7 +3,7 @@ from brokit.primitives.lm import LM, ModelType, ModelResponse
 from typing import Type, List, Optional, Any
 import re
 from brokit.primitives.formatter import PromptFormatter
-from brokit.primitives.prompt import Image
+from brokit.primitives.prompt import Image, Audio
 from brokit.primitives.shot import Shot
 
 def parse_outputs(response: str, output_fields: dict, special_token: str = "<||{field}||>") -> dict:
@@ -79,17 +79,16 @@ class Predictor:
         else:
             return value
 
-    def _call_chat(self, lm, system_prompt, shot_prompt, input_prompt, images):
-        messages = self.prompt_formatter.format_chat(system_prompt, shot_prompt, input_prompt, images)
-        response = lm(messages=messages)
+    def _call_chat(self, lm, system_prompt, shot_prompt, input_prompt, images, audios):
+        messages = self.prompt_formatter.format_chat(system_prompt, shot_prompt, input_prompt)
+        response = lm(messages=messages, images=images, audios=audios)
         output = self.structure_output(response, self.prompt.output_fields)
         response.parsed_response = output.to_dict()
         response.request = messages
         lm.history.append(response)
         return output
 
-    def __call__(self, images: Optional[list[Image]]=None, **kwargs):
-        # prompt_instance = self.prompt.to_dict()
+    def __call__(self, images: Optional[List[Image]]=None, audios:Optional[List[Audio]]=None, **kwargs):
         input_fields = self.prompt.input_fields
         output_fields = self.prompt.output_fields
         instructions = self.prompt.instructions
@@ -98,12 +97,11 @@ class Predictor:
 
         base64_images = None
         if images:
-            from brokit.primitives.prompt import Image
             base64_images = [
                 img.to_base64() if isinstance(img, Image) else img 
                 for img in images
             ]
 
         if lm.model_type == ModelType.CHAT:
-            return self._call_chat(lm, system_prompt, input_prompt, shot_prompt, base64_images)
+            return self._call_chat(lm, system_prompt, input_prompt, shot_prompt, base64_images, audios)
         raise NotImplementedError("Only CHAT model type is implemented.")

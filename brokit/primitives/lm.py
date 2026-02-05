@@ -6,6 +6,7 @@ import time
 from collections import OrderedDict
 import json
 import hashlib
+from brokit.primitives.prompt import Image, Audio
 
 class ModelType(str, Enum):
     CHAT = "chat"
@@ -15,13 +16,13 @@ class ModelType(str, Enum):
 class Message:
     role: Literal["system", "user", "assistant"]
     content: str
-    images: Optional[List[Any]] = None
+    # images: Optional[List[Any]] = None
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dict for serialization."""
         d: Dict[str, Any] = {"role": self.role, "content": self.content}
-        if self.images:
-            d["images"] = self.images
+        # if self.images:
+        #     d["images"] = self.images
         return d
 
 @dataclass
@@ -50,7 +51,7 @@ class LM(ABC):
         self.history = []
 
     @abstractmethod    
-    def request(self, prompt:Optional[str]=None, messages:Optional[List[Message]]=None, **kwargs) -> Any:
+    def request(self, prompt:Optional[str]=None, messages:Optional[List[Message]]=None, images:Optional[List[Image]]=None, audios:Optional[List[Audio]]=None,**kwargs) -> Any:
         raise NotImplementedError
 
     @abstractmethod
@@ -63,7 +64,7 @@ class LM(ABC):
         if prompt is not None and messages is not None:
             raise ValueError("Cannot provide both prompt and messages")
 
-    def _cache_key(self, prompt: Optional[str], messages: Optional[List[Message]], kwargs: dict) -> str:
+    def _cache_key(self, prompt: Optional[str], messages: Optional[List[Message]], images:Optional[List[Image]], audios:Optional[List[Audio]], kwargs: dict) -> str:
         """Generate cache key from request parameters."""
         # Convert messages to serializable format
         serializable_messages = None
@@ -72,7 +73,7 @@ class LM(ABC):
                 {
                     "role": msg.role,
                     "content": msg.content,
-                    "images": msg.images
+                    # "images": msg.images # we must remove this and implement how to serialize images and audios
                 } if isinstance(msg, Message) else msg
                 for msg in messages
             ]
@@ -81,6 +82,7 @@ class LM(ABC):
             "model": self.model_name,
             "prompt": prompt,
             "messages": serializable_messages,
+            "images": [img._base64[:16] for img in images] if images else None, 
             **kwargs
         }
         # Convert to JSON string (sorted for consistency)
@@ -88,9 +90,9 @@ class LM(ABC):
         # Hash to fixed-length key
         return hashlib.sha256(json_str.encode()).hexdigest()    
 
-    def __call__(self, prompt: Optional[str] = None, messages: Optional[List[Message]] = None, **kwargs) -> ModelResponse:
+    def __call__(self, prompt: Optional[str] = None, messages: Optional[List[Message]] = None, images:Optional[List[Image]]=None, audios:Optional[List[Audio]]=None, **kwargs) -> ModelResponse:
         self._validate_input(prompt, messages)
-        key = self._cache_key(prompt, messages, kwargs)
+        key = self._cache_key(prompt, messages, images, audios, kwargs)
         # Check cache
         if key in self._cache:
             self._cache.move_to_end(key)  # Mark as recently used
@@ -100,7 +102,7 @@ class LM(ABC):
 
         # Automatic timing
         start = time.perf_counter()
-        original_response = self.request(prompt=prompt, messages=messages, **kwargs)
+        original_response = self.request(prompt=prompt, messages=messages, images=images, audios=audios, **kwargs)
         elapsed_ms = (time.perf_counter() - start) * 1000
         
         # Parse response

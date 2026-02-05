@@ -53,11 +53,18 @@ class Image:
     def to_base64(self) -> str:
         """Get base64 encoded string."""
         return self._base64
+
+    def to_bytes(self) -> bytes:
+        """Get raw bytes from base64."""
+        return base64.b64decode(self._base64)        
     
     def __repr__(self) -> str:
         """DSPy-style representation."""
         data_url = f"data:{self._mime_type};base64,<IMAGE_BASE64_ENCODED({len(self._base64)})>"
         return f"Image(url={data_url})"
+
+class Audio:
+    def __init__(self, ): pass
 
 @dataclass
 class FieldInfo:

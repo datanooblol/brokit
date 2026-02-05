@@ -1,9 +1,14 @@
 # Roadmap
 
+## Done ✓
+
+- **Foundation** - LM, Prompt, Predictor primitives
+- **Vision Support** - Image class for multimodal models
+
 ## What's Coming
 
-### Image Format Support
-Testing and supporting more image formats. We want you to throw any image at it and have it just work.
+### History & Tracking
+Better tracking for LM and Predictor interactions. Current `LM.history` is basic—need a proper design for monitoring, debugging, and analyzing how your models behave.
 
 ### Few-Shot Tuning
 DSPy-style optimization for your few-shot examples. Let the system figure out the best examples for you.
