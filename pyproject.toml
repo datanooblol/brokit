@@ -1,10 +1,13 @@
 [project]
 name = "brokit"
-version = "0.1.0"
+version = "0.1.1"
 description = "brokit, think it like a playing lego"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = []
+
+[tool.setuptools]
+packages = ["brokit"]
 
 [dependency-groups]
 dev = [

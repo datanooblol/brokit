@@ -32,13 +32,42 @@ Zero required dependencies. Want to use `requests`, `httpx`, or `boto3`? Go for 
 - Build custom LM implementations
 - Structured prompts with type hints
 
-## Getting Started
+## Installation
 
-Peep the notebooks:
-- Custom Prompt signatures
-- Your own LM implementations  
-- Few-shot examples
-- External library integrations
+```bash
+pip install brokit
+```
+
+## Quick Start
+
+```python
+import brokit as bk
+
+# Define your prompt structure
+class QA(bk.Prompt):
+    """Answer questions"""
+    question: str = bk.InputField()
+    answer: str = bk.OutputField()
+
+# Create your LM and predictor
+lm = YourLM(model_name="your-model")
+qa = bk.Predictor(prompt=QA, lm=lm)
+
+# Get results
+response = qa(question="What is brokit?")
+```
+
+## Cookbook
+
+Check out the `cookbook/` directory for hands-on examples:
+
+**LM Integrations:**
+- `lm/ollama.ipynb` - Ollama integration with vision support
+- `lm/bedrock.ipynb` - AWS Bedrock integration
+
+**Predictor Patterns:**
+- `predictor/zero_shot.ipynb` - Basic prompting and chain-of-thought
+- `predictor/few_shots.ipynb` - Few-shot learning with examples
 
 ## What's Next?
 

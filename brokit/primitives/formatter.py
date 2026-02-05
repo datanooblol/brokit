@@ -1,4 +1,3 @@
-from brokit.primitives.prompt import Prompt
 from brokit.primitives.shot import Shot
 from brokit.primitives.lm import Message
 from typing import List, Optional
@@ -104,18 +103,6 @@ class PromptFormatter:
         
         return input_prompt
 
-    # @staticmethod
-    # def format_chat(system_prompt: list, input_prompt: list, images: Optional[list] = None) -> list[Message]:
-    #     messages = []
-    #     if system_prompt:
-    #         messages.append(Message(role="system", content="\n".join(system_prompt)))
-    #     if input_prompt:
-    #         messages.append(Message(
-    #             role="user", 
-    #             content="\n".join(input_prompt),
-    #             images=images
-    #         ))
-    #     return messages   
     @staticmethod
     def format_chat(system_prompt: list, shot_prompt: list, input_prompt: list, images: Optional[list] = None) -> list[Message]:
         """
@@ -144,7 +131,6 @@ class PromptFormatter:
             messages.append(Message(
                 role="user",
                 content="\n".join(input_prompt),
-                images=images
             ))
         
         return messages
