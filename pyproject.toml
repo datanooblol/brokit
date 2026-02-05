@@ -6,6 +6,9 @@ readme = "README.md"
 requires-python = ">=3.10"
 dependencies = []
 
+[tool.setuptools]
+packages = ["brokit"]
+
 [dependency-groups]
 dev = [
     "boto3>=1.42.39",
