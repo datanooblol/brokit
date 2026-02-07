@@ -1,5 +1,5 @@
 from brokit.primitives.shot import Shot
-from brokit.primitives.lm import Message
+from brokit.primitives.lm.types import Message
 from typing import List, Optional
 
 class PromptFormatter:

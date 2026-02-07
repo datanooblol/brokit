@@ -1,4 +1,6 @@
-from brokit.primitives.lm import LM, ModelType, ModelResponse, Usage, Message
+# from brokit.primitives.lm import LM, ModelType, ModelResponse, Usage, Message
+from brokit.primitives.lm.core import LM
+from brokit.primitives.lm.types import ModelType, ModelResponse, Usage, Message
 from brokit.primitives.prompt import Prompt, InputField, OutputField, Image
 from brokit.primitives.predictor import Predictor
 from brokit.primitives.shot import Shot

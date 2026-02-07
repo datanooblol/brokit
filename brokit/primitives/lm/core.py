@@ -1,46 +1,11 @@
 from abc import ABC, abstractmethod
-from typing import List, Dict, Optional, Any, Literal
-from dataclasses import dataclass
-from enum import Enum
+from typing import List, Optional, Any
 import time
 from collections import OrderedDict
 import json
 import hashlib
 from brokit.primitives.prompt import Image, Audio
-
-class ModelType(str, Enum):
-    CHAT = "chat"
-    # COMPLETION = "completion" # not implement yet
-
-@dataclass
-class Message:
-    role: Literal["system", "user", "assistant"]
-    content: str
-    # images: Optional[List[Any]] = None
-
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dict for serialization."""
-        d: Dict[str, Any] = {"role": self.role, "content": self.content}
-        # if self.images:
-        #     d["images"] = self.images
-        return d
-
-@dataclass
-class Usage:
-    input_tokens: int
-    output_tokens: int
-
-@dataclass
-class ModelResponse:
-    model_name:str
-    model_type:ModelType
-    response:str
-    usage:Usage
-    response_ms: Optional[float] = None
-    cached:bool = False
-    metadata:Optional[Dict[str, Any]] = None
-    request:Optional[Dict[str, Any]] = None
-    parsed_response: Optional[Dict[str, Any]] = None
+from brokit.primitives.lm.types import ModelType, Message, ModelResponse
 
 class LM(ABC):
     def __init__(self, model_name: str, model_type:ModelType, cache_size:int=10):
@@ -48,7 +13,7 @@ class LM(ABC):
         self.model_type = model_type
         self._cache = OrderedDict()
         self._cache_size = cache_size
-        self.history = []
+        # self.history = []
 
     @abstractmethod    
     def request(self, prompt:Optional[str]=None, messages:Optional[List[Message]]=None, images:Optional[List[Image]]=None, audios:Optional[List[Audio]]=None,**kwargs) -> Any:

@@ -1,5 +1,7 @@
 from brokit.primitives.prompt import Prompt
-from brokit.primitives.lm import LM, ModelType, ModelResponse
+# from brokit.primitives.lm import LM, ModelType, ModelResponse
+from brokit.primitives.lm.core import LM
+from brokit.primitives.lm.types import ModelType, ModelResponse
 from typing import Type, List, Optional, Any
 import re
 from brokit.primitives.formatter import PromptFormatter
