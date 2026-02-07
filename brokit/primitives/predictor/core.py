@@ -1,12 +1,12 @@
-from brokit.primitives.prompt import Prompt
-# from brokit.primitives.lm import LM, ModelType, ModelResponse
+from brokit.primitives.prompt.core import Prompt
+from brokit.primitives.prompt.types import Image, Audio
 from brokit.primitives.lm.core import LM
 from brokit.primitives.lm.types import ModelType, ModelResponse
-from typing import Type, List, Optional, Any
-import re
+from brokit.primitives.predictor.types import Prediction
 from brokit.primitives.formatter import PromptFormatter
-from brokit.primitives.prompt import Image, Audio
 from brokit.primitives.shot import Shot
+from typing import Type, List, Optional
+import re
 
 def parse_outputs(response: str, output_fields: dict, special_token: str = "<||{field}||>") -> dict:
     """Parse LM response with dynamic special tokens."""
@@ -27,22 +27,6 @@ def parse_outputs(response: str, output_fields: dict, special_token: str = "<||{
             outputs[field_name] = match.group(1).strip()
     
     return outputs
-
-class Prediction:
-    def __init__(self, **kwargs: Any) -> None:
-        self._data = kwargs
-        for key, value in kwargs.items():
-            setattr(self, key, value)
-    
-    def __repr__(self) -> str:
-        items = ",\n    ".join(f"{k}={v!r}" for k, v in self._data.items())
-        return f"Prediction(\n    {items}\n)"
-    
-    def __getattr__(self, name: str) -> Any:
-        raise AttributeError(f"'{type(self).__name__}' has no attribute '{name}'")
-
-    def to_dict(self) -> dict:
-        return self._data        
 
 class Predictor:
     def __init__(self, prompt: Type[Prompt], lm:Optional[LM]=None, shots:Optional[list[Shot]]=None):

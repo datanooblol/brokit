@@ -1,4 +1,4 @@
-from brokit.primitives.prompt import Prompt
+from brokit.primitives.prompt.core import Prompt
 from typing import Optional, Type
 
 class Shot:

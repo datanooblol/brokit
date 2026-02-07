@@ -4,7 +4,7 @@ import time
 from collections import OrderedDict
 import json
 import hashlib
-from brokit.primitives.prompt import Image, Audio
+from brokit.primitives.prompt.types import Image, Audio
 from brokit.primitives.lm.types import ModelType, Message, ModelResponse
 
 class LM(ABC):
