@@ -4,10 +4,12 @@ from brokit.primitives.prompt.core import Prompt
 from brokit.primitives.prompt.types import InputField, OutputField, Image
 from brokit.primitives.predictor.core import Predictor
 from brokit.primitives.shot import Shot
+from brokit.primitives.program import Program
 
 __all__ = [
     "LM", "ModelType", "ModelResponse", "Usage", "Message",
     "Prompt", "InputField", "OutputField", "Image",
     "Predictor",
     "Shot",
+    "Program",
 ]

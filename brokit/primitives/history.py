@@ -10,6 +10,7 @@ class BaseHistory:
     id: str = Field(description="Unique call identifier", default_factory=lambda: str(uuid.uuid4()))
     timestamp: datetime = Field(description="When call was made", default_factory=datetime.now)
     error: Optional[str] = Field(description="Error if failed", default=None)
+    response_ms: float = Field(description="Response time in ms", default=0.0)
 
 @dataclass
 class LMHistory(BaseHistory):
@@ -19,7 +20,6 @@ class LMHistory(BaseHistory):
     request: Any = Field(description="Prompt or messages", default=None)
     response: str = Field(description="Raw model response", default="")
     usage: Optional[Dict[str, int]] = Field(description="Token usage", default=None)
-    response_ms: float = Field(description="Response time in ms", default=0.0)
     cached: bool = Field(description="From cache", default=False)
 
 @dataclass

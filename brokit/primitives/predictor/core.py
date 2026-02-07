@@ -7,6 +7,7 @@ from brokit.primitives.formatter import PromptFormatter
 from brokit.primitives.shot import Shot
 from brokit.primitives.history import PredictorHistory
 from typing import Type, List, Optional
+import time
 import re
 
 def parse_outputs(response: str, output_fields: dict, special_token: str = "<||{field}||>") -> dict:
@@ -68,8 +69,10 @@ class Predictor:
             return value
 
     def _call_chat(self, lm, system_prompt, shot_prompt, input_prompt, images, audios):
+        start = time.perf_counter()
         messages = self.prompt_formatter.format_chat(system_prompt, shot_prompt, input_prompt)
         model_response = lm(messages=messages, images=images, audios=audios)
+        elapsed_ms = (time.perf_counter() - start) * 1000
         output = self.structure_output(model_response, self.prompt.output_fields)
         # response.parsed_response = output.to_dict()
         # response.request = messages
@@ -78,7 +81,8 @@ class Predictor:
             predictor_name=self.prompt.__name__,
             inputs=lm._serialize_request(messages),
             outputs=output.to_dict(),
-            lm_call_id=lm.history[-1].id if lm.history else None
+            lm_call_id=lm.history[-1].id if lm.history else None,
+            response_ms=elapsed_ms
         )
         self.history.append(predictor_history)        
         return output
