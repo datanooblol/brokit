@@ -22,6 +22,9 @@ class Usage:
     input_tokens: int
     output_tokens: int
 
+    def to_dict(self) -> Dict[str, int]:
+        return {"input_tokens": self.input_tokens, "output_tokens": self.output_tokens}    
+
 @dataclass
 class ModelResponse:
     # Required fields (no default)

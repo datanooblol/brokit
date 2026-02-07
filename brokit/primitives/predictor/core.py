@@ -5,6 +5,7 @@ from brokit.primitives.lm.types import ModelType, ModelResponse
 from brokit.primitives.predictor.types import Prediction
 from brokit.primitives.formatter import PromptFormatter
 from brokit.primitives.shot import Shot
+from brokit.primitives.history import PredictorHistory
 from typing import Type, List, Optional
 import re
 
@@ -34,6 +35,7 @@ class Predictor:
         self.lm = lm
         self.shots = shots
         self.prompt_formatter = PromptFormatter()
+        self.history: List[PredictorHistory] = []
 
     def structure_output(self, response: ModelResponse, output_fields, special_token: str = "<||{field}||>") -> Prediction:
         output = parse_outputs(response.response, output_fields, special_token)
@@ -67,11 +69,18 @@ class Predictor:
 
     def _call_chat(self, lm, system_prompt, shot_prompt, input_prompt, images, audios):
         messages = self.prompt_formatter.format_chat(system_prompt, shot_prompt, input_prompt)
-        response = lm(messages=messages, images=images, audios=audios)
-        output = self.structure_output(response, self.prompt.output_fields)
-        response.parsed_response = output.to_dict()
-        response.request = messages
-        lm.history.append(response)
+        model_response = lm(messages=messages, images=images, audios=audios)
+        output = self.structure_output(model_response, self.prompt.output_fields)
+        # response.parsed_response = output.to_dict()
+        # response.request = messages
+        # Create predictor history entry
+        predictor_history = PredictorHistory(
+            predictor_name=self.prompt.__name__,
+            inputs=lm._serialize_request(messages),
+            outputs=output.to_dict(),
+            lm_call_id=lm.history[-1].id if lm.history else None
+        )
+        self.history.append(predictor_history)        
         return output
 
     def __call__(self, images: Optional[List[Image]]=None, audios:Optional[List[Audio]]=None, **kwargs):
