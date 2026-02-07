@@ -13,3 +13,5 @@ __all__ = [
     "Shot",
     "Program",
 ]
+
+__version__ = "0.1.2"

@@ -1,5 +1,20 @@
 # Versions
 
+## 0.1.2 - History & Program
+
+**What's new:**
+- **History tracking** - Complete execution traces for debugging
+  - `LMHistory` - Track raw model calls (request, response, tokens, timing, cache hits)
+  - `PredictorHistory` - Track structured predictions with links to LM calls
+  - `ProgramHistory` - Track multi-step workflows with links to child calls
+- **Program primitive** - `bk.Program` for composing multi-step workflows
+  - Simple `step()` method to execute and track components
+  - Auto-captures inputs, outputs, timing, and errors
+  - Works with Predictors, LMs, custom functions, or nested Programs
+  - Debug helpers: `trace()` for quick overview, `get_step()` for inspection
+- **Unified timing** - All history entries track execution time in milliseconds
+- **Serializable history** - All history uses base Python types (dict, str, int) for easy export/analysis
+
 ## 0.1.1 - Vision & Imports
 
 **What's new:**
