@@ -1,5 +1,5 @@
 from brokit.primitives.shot import Shot
-from brokit.primitives.lm import Message
+from brokit.primitives.lm.types import Message
 from typing import List, Optional
 
 class PromptFormatter:
@@ -24,7 +24,6 @@ class PromptFormatter:
 
     def format_shot_prompt(self, shot_prompt: list, input_fields: dict, output_fields: dict, shots: Optional[List], special_token: str) -> list:
         """Format shots as user/assistant message pairs."""
-        from brokit.primitives.lm import Message
         
         if not shots:
             return shot_prompt
@@ -114,7 +113,6 @@ class PromptFormatter:
             input_prompt: User input
             images: Optional images for user input
         """
-        from brokit.primitives.lm import Message
         
         messages = []
         

@@ -13,6 +13,7 @@ Coming from DSPy? You already know what's up:
 - **Prompt** = `dspy.Signature` — Define your input/output structure
 - **Predictor** = `dspy.Predict` — Execute prompts with your LM
 - **LM** = `dspy.LM` — Language model interface
+- **Program** — Compose multi-step workflows
 - **Shot** — Few-shot examples made simple
 
 ## Design Philosophy
@@ -31,6 +32,8 @@ Zero required dependencies. Want to use `requests`, `httpx`, or `boto3`? Go for 
 - Few-shot learning with Shot
 - Build custom LM implementations
 - Structured prompts with type hints
+- Complete execution history for debugging
+- Multi-step workflows with Program
 
 ## Installation
 
@@ -55,6 +58,10 @@ qa = bk.Predictor(prompt=QA, lm=lm)
 
 # Get results
 response = qa(question="What is brokit?")
+
+# Debug with history
+print(qa.history[0].inputs)   # See what was sent
+print(qa.lm.history[0].usage) # Check token usage
 ```
 
 ## Cookbook
@@ -68,6 +75,9 @@ Check out the `cookbook/` directory for hands-on examples:
 **Predictor Patterns:**
 - `predictor/zero_shot.ipynb` - Basic prompting and chain-of-thought
 - `predictor/few_shots.ipynb` - Few-shot learning with examples
+
+**Program Workflows:**
+- `program/simple_program.ipynb` - Multi-step workflows with tracking
 
 ## What's Next?
 
